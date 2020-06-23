@@ -28,11 +28,11 @@ class PlotWindow(PlotWidget):
     def __init__(self, data = np.zeros(100)):
         super().__init__()
 
-        # generate a random array
         self.data = data
 
         # set the window size
         self.resize(1080, 1080)
+        # set axis
         self.showAxis('top')
         self.showAxis('right')
         

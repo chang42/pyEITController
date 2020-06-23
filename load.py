@@ -10,7 +10,6 @@ class FileOperation(QMainWindow):
         self.data = np.zeros(0)
         self.file_name = None
         self.file_type = None
-
     
     def openFile(self):
         self.file_name, self.file_type = QFileDialog.getOpenFileName(self, 'Open File', './', 'Files (*.txt *.csv)')

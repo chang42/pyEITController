@@ -7,20 +7,25 @@ class Oscilloscope:
         self.address = 'TCPIP::%s::INSTR' % self.ip
         self.rm = visa.ResourceManager('@py')
 
+    # open resource
     def open(self):
         self.instance = self.rm.open_resource(self.address)
 
+    # close resource
     def close(self):
         if self.instance is not None:
             self.instance.close
             self.instance = None
 
+    # write command
     def write(self, cmd):
         self.instance.write('%s' % cmd)
 
+    # read command
     def read(self):
         pass
 
+    # query command
     def query(self, cmd):
         return self.instance.query('%s' % cmd)
 
