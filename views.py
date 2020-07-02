@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtCore import QTimer
 
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget
@@ -18,10 +19,17 @@ class StartWindow(QMainWindow):
         self.layout.addWidget(self.plot_view)
         self.setCentralWidget(self.central_widget)
 
-    def updatePlot(self):
-        self.plot_view.plotData(self.data)
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.updatePlot)
 
-    def updatePlotData(self):
+    def updatePlot(self):
+        self.curve = self.plot_view.plot(pen='y')
+        self.curve.setData(self.data)
+
+    def startAcquire(self):
+        pass
+
+    def stopAcquire(self):
         pass
 
 class PlotWindow(PlotWidget):
