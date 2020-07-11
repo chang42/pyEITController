@@ -5,7 +5,7 @@ from views import StartWindow
 
 import numpy as np
 
-rigol = Oscilloscope('192.168.1.160')
+rigol = Oscilloscope('TCPIP::192.168.1.160::INSTR')
 
 rigol.open()
 

@@ -8,15 +8,17 @@ from views import StartWindow
 
 import numpy as np
 
-rigol = Oscilloscope('192.168.1.148')
+rigol = Oscilloscope('USB0::0x1AB1::0x04B0::DS2D212801707::INSTR')
 
 rigol.open()
+
+info = rigol.query('*IDN?')
+model = info.split(',')[1]
 
 rigol.write(':WAVeform:FORMat ASCii')
 rigol.write(':WAVeform:SOURce CHANnel1')
 
 param = rigol.query(':WAVeform:PREamble?')
-
 points = int(param.split(',')[2])
 
 class MainWindow(QMainWindow):
@@ -27,12 +29,15 @@ class MainWindow(QMainWindow):
         self.graphWidget = pg.PlotWidget()
         self.setCentralWidget(self.graphWidget)
 
+        xincrement = float(param.split(',')[4])
+        xorigin = float(param.split(',')[5])
+        self.x = np.linspace(xorigin, xorigin+points*xincrement, points)
         self.y = np.zeros(points)
 
         self.graphWidget.setBackground('w')
 
         pen = pg.mkPen(color=(255, 0, 0))
-        self.data_line =  self.graphWidget.plot(self.y, pen=pen)
+        self.data_line =  self.graphWidget.plot(self.x, self.y, pen=pen)
 
         self.update_timer = QTimer()
         # self.update_timer.setInterval(50)
@@ -40,13 +45,20 @@ class MainWindow(QMainWindow):
         self.update_timer.start()
 
     def updatePlot(self):
-        data = rigol.query(':WAVeform:DATA?')
+        param = rigol.query(':WAVeform:PREamble?')
+        points = int(param.split(',')[2])
+        xincrement = float(param.split(',')[4])
+        xorigin = float(param.split(',')[5])
+        xdata = np.linspace(xorigin, xorigin+points*xincrement, points)
 
-        data = data[int(data[1])+2:]
+        ydata = rigol.query(':WAVeform:DATA?')
 
-        data_as_array = np.array(data.split(',')[:-1], dtype=np.float)
+        if model != 'DS2202A':
+            ydata = ydata[int(ydata[1])+2:]
 
-        self.data_line.setData(data_as_array)
+        ydata_as_array = np.array(ydata.split(',')[:-1], dtype=np.float)
+
+        self.data_line.setData(xdata, ydata_as_array)
 
 app = QApplication([])
 start_window = MainWindow()

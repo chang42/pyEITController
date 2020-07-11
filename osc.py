@@ -2,10 +2,9 @@ import visa
 import numpy as np
 
 class Oscilloscope:
-    def __init__(self, ip, *args):
-        self.ip = ip
-        self.address = 'TCPIP::%s::INSTR' % self.ip
-        self.rm = visa.ResourceManager('@py')
+    def __init__(self, address, *args):
+        self.address = address
+        self.rm = visa.ResourceManager()
 
     # open resource
     def open(self):
