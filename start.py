@@ -5,19 +5,19 @@ from views import StartWindow
 
 import numpy as np
 
-rigol = Oscilloscope('TCPIP::192.168.1.160::INSTR')
+rigol = Oscilloscope('TCPIP::192.168.1.163::INSTR')
 
 rigol.open()
 
-rigol.write(':WAVeform:FORMat ASCii')
-rigol.write(':WAVeform:SOURce CHANnel1')
+# rigol.write(':WAVeform:FORMat ASCii')
+# rigol.write(':WAVeform:SOURce CHANnel1')
 
-data = rigol.query(':WAVeform:DATA?')
+# data = rigol.query(':WAVeform:DATA?')
 
-data_as_array = np.array(data.split(',')[:-1], dtype=np.float)
+# data_as_array = np.array(data.split(',')[:-1], dtype=np.float)
 
 app = QApplication([])
-start_window = StartWindow(data_as_array)
+start_window = StartWindow(rigol)
 start_window.show()
 app.exit(app.exec_())
 
