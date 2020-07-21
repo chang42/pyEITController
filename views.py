@@ -52,7 +52,7 @@ class PlotWindow(PlotWidget):
     def __init__(self):
         super().__init__()
 
-        self.x =np.linspace(0, 1, 1400)
+        self.x = np.linspace(0, 1, 1400)
         self.y = np.zeros(1400)
 
         self.setBackground('w')

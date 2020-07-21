@@ -3,7 +3,9 @@ import numpy as np
 
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtGui import QDoubleValidator
-from dg645 import Ui_MainWindow
+from uidg645 import Ui_MainWindow
+
+import pyqtgraph as pg
 
 class Sequence():
     def __init__(self, address, *args):
@@ -49,6 +51,8 @@ class StartWindow(QMainWindow, Ui_MainWindow):
 
         self.DoubleValidator = QDoubleValidator()
         self.DoubleValidator.setRange(0, 1e3)
+        self.DoubleValidator.setNotation(self.DoubleValidator.ScientificNotation)
+        self.DoubleValidator.setDecimals(9)
         self.lineEdit_Trig.setValidator(self.DoubleValidator)
         self.lineEdit_A.setValidator(self.DoubleValidator)
         self.lineEdit_B.setValidator(self.DoubleValidator)
@@ -69,16 +73,118 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_G.setText('0e0')
         self.lineEdit_H.setText('0e0')
 
-        self.lineEdit_Trig.editingFinished.connect(lambda:self.instrument.setTriggerRate(self.lineEdit_Trig.text()))
-        self.lineEdit_A.editingFinished.connect(lambda:self.instrument.setDelay('A', 'T0', self.lineEdit_A.text()))
-        self.lineEdit_B.editingFinished.connect(lambda:self.instrument.setDelay('B', 'T0', self.lineEdit_B.text()))
-        self.lineEdit_C.editingFinished.connect(lambda:self.instrument.setDelay('C', 'T0', self.lineEdit_C.text()))
-        self.lineEdit_D.editingFinished.connect(lambda:self.instrument.setDelay('D', 'T0', self.lineEdit_D.text()))
-        self.lineEdit_E.editingFinished.connect(lambda:self.instrument.setDelay('E', 'T0', self.lineEdit_E.text()))
-        self.lineEdit_F.editingFinished.connect(lambda:self.instrument.setDelay('F', 'T0', self.lineEdit_F.text()))
-        self.lineEdit_G.editingFinished.connect(lambda:self.instrument.setDelay('G', 'T0', self.lineEdit_G.text()))
-        self.lineEdit_H.editingFinished.connect(lambda:self.instrument.setDelay('H', 'T0', self.lineEdit_H.text()))
+        self.seq_curve = self.sequenceView()
 
+        self.verticalLayout.addWidget(self.seq_curve)
+
+        self.lineEdit_Trig.editingFinished.connect(lambda:self.instrument.setTriggerRate(self.lineEdit_Trig.text()))
+        self.lineEdit_Trig.editingFinished.connect(self.updatePlot)
+        self.lineEdit_A.editingFinished.connect(lambda:self.instrument.setDelay('A', 'T0', self.lineEdit_A.text()))
+        self.lineEdit_A.editingFinished.connect(self.updatePlot)
+        self.lineEdit_B.editingFinished.connect(lambda:self.instrument.setDelay('B', 'T0', self.lineEdit_B.text()))
+        self.lineEdit_B.editingFinished.connect(self.updatePlot)
+        self.lineEdit_C.editingFinished.connect(lambda:self.instrument.setDelay('C', 'T0', self.lineEdit_C.text()))
+        self.lineEdit_C.editingFinished.connect(self.updatePlot)
+        self.lineEdit_D.editingFinished.connect(lambda:self.instrument.setDelay('D', 'T0', self.lineEdit_D.text()))
+        self.lineEdit_D.editingFinished.connect(self.updatePlot)
+        self.lineEdit_E.editingFinished.connect(lambda:self.instrument.setDelay('E', 'T0', self.lineEdit_E.text()))
+        self.lineEdit_E.editingFinished.connect(self.updatePlot)
+        self.lineEdit_F.editingFinished.connect(lambda:self.instrument.setDelay('F', 'T0', self.lineEdit_F.text()))
+        self.lineEdit_F.editingFinished.connect(self.updatePlot)
+        self.lineEdit_G.editingFinished.connect(lambda:self.instrument.setDelay('G', 'T0', self.lineEdit_G.text()))
+        self.lineEdit_G.editingFinished.connect(self.updatePlot)
+        self.lineEdit_H.editingFinished.connect(lambda:self.instrument.setDelay('H', 'T0', self.lineEdit_H.text()))
+        self.lineEdit_H.editingFinished.connect(self.updatePlot)     
+
+    def sequenceView(self):
+        trig_rate = self.lineEdit_Trig.text()
+        delay_A = self.lineEdit_A.text()
+        delay_B = self.lineEdit_B.text()
+        delay_C = self.lineEdit_C.text()
+        delay_D = self.lineEdit_D.text()
+        delay_E = self.lineEdit_E.text()
+        delay_F = self.lineEdit_F.text()
+        delay_G = self.lineEdit_G.text()
+        delay_H = self.lineEdit_H.text()
+
+        self.curve = pg.PlotWidget()
+        period = 1/float(trig_rate)
+        x = np.linspace(0, period, 1000000)
+        level_AB = np.zeros(1000000)
+        level_AB[:int(np.floor(1000000*float(delay_A)/period))] = 3
+        level_AB[int(np.floor(1000000*float(delay_A)/period)):int(np.floor(1000000*float(delay_B)/period))] = 3.9
+        level_AB[int(np.floor(1000000*float(delay_B)/period)):] = 3
+
+        level_CD = np.zeros(1000000)
+        level_CD[:int(np.floor(1000000*float(delay_C)/period))] = 2
+        level_CD[int(np.floor(1000000*float(delay_C)/period)):int(np.floor(1000000*float(delay_D)/period))] = 2.9
+        level_CD[int(np.floor(1000000*float(delay_D)/period)):] = 2
+
+        level_EF = np.zeros(1000000)
+        level_EF[:int(np.floor(1000000*float(delay_E)/period))] = 1
+        level_EF[int(np.floor(1000000*float(delay_E)/period)):int(np.floor(1000000*float(delay_F)/period))] = 1.9
+        level_EF[int(np.floor(1000000*float(delay_F)/period)):] = 1
+
+        level_GH = np.zeros(1000000)
+        level_GH[:int(np.floor(1000000*float(delay_G)/period))] = 0
+        level_GH[int(np.floor(1000000*float(delay_G)/period)):int(np.floor(1000000*float(delay_H)/period))] = 0.9
+        level_GH[int(np.floor(1000000*float(delay_H)/period)):] = 0
+        
+        self.curve.setBackground('w')
+        # self.curve.showAxis('right')
+        self.curve.setYRange(-0.5, 4)
+
+        self.axis = self.curve.getPlotItem().getAxis('left')
+        self.axis.setTicks([[(0, 'GH'), (1, 'EF'), (2, 'CD'), (3, 'AB')]])
+        # self.axis.setStyle(tickLength=0)
+
+        self.seq_curve_AB = self.curve.plot(x, level_AB, pen=pg.mkPen(color=(255, 0, 0), width=2))
+        self.seq_curve_CD = self.curve.plot(x, level_CD, pen=pg.mkPen(color=(255, 116, 0), width=2))
+        self.seq_curve_EF = self.curve.plot(x, level_EF, pen=pg.mkPen(color=(0, 153, 153), width=2))
+        self.seq_curve_GH = self.curve.plot(x, level_GH, pen=pg.mkPen(color=(0, 204, 0), width=2))
+
+        return self.curve
+
+    def updatePlot(self):
+        trig_rate = self.lineEdit_Trig.text()
+        delay_A = self.lineEdit_A.text()
+        delay_B = self.lineEdit_B.text()
+        delay_C = self.lineEdit_C.text()
+        delay_D = self.lineEdit_D.text()
+        delay_E = self.lineEdit_E.text()
+        delay_F = self.lineEdit_F.text()
+        delay_G = self.lineEdit_G.text()
+        delay_H = self.lineEdit_H.text()
+
+        period = 1/float(trig_rate)
+        x = np.linspace(0, period, 1000000)
+        level_AB = np.zeros(1000000)
+        level_AB[:int(np.floor(1000000*float(delay_A)/period))] = 3
+        level_AB[int(np.floor(1000000*float(delay_A)/period)):int(np.floor(1000000*float(delay_B)/period))] = 3.9
+        level_AB[int(np.floor(1000000*float(delay_B)/period)):] = 3
+
+        level_CD = np.zeros(1000000)
+        level_CD[:int(np.floor(1000000*float(delay_C)/period))] = 2
+        level_CD[int(np.floor(1000000*float(delay_C)/period)):int(np.floor(1000000*float(delay_D)/period))] = 2.9
+        level_CD[int(np.floor(1000000*float(delay_D)/period)):] = 2
+
+        level_EF = np.zeros(1000000)
+        level_EF[:int(np.floor(1000000*float(delay_E)/period))] = 1
+        level_EF[int(np.floor(1000000*float(delay_E)/period)):int(np.floor(1000000*float(delay_F)/period))] = 1.9
+        level_EF[int(np.floor(1000000*float(delay_F)/period)):] = 1
+
+        level_GH = np.zeros(1000000)
+        level_GH[:int(np.floor(1000000*float(delay_G)/period))] = 0
+        level_GH[int(np.floor(1000000*float(delay_G)/period)):int(np.floor(1000000*float(delay_H)/period))] = 0.9
+        level_GH[int(np.floor(1000000*float(delay_H)/period)):] = 0
+
+        self.seq_curve_AB.setData(x, level_AB)
+        self.seq_curve_CD.setData(x, level_CD)
+        self.seq_curve_EF.setData(x, level_EF)
+        self.seq_curve_GH.setData(x, level_GH)
+        # self.seq_curve.plot(xdata, ydata)
+
+        # self.seq_curve.show()
 
 if __name__ == '__main__':
     dg645 = Sequence('TCPIP::192.168.1.139::INSTR')

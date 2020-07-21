@@ -1,7 +1,7 @@
 import visa
 import numpy as np
 
-class Oscilloscope:
+class Oscilloscope():
     def __init__(self, address, *args):
         self.address = address
         self.rm = visa.ResourceManager()
