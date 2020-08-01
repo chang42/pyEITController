@@ -37,11 +37,27 @@ class Sequence():
     def setTriggerRate(self, freq):
         self.instance.write('TRAT {:s}'.format(freq))
 
+    def getTriggerRate(self):
+        trig_rate = self.instance.query('TRAT?')
+        return float(trig_rate)
+
     def setDelay(self, chann1, chann2, delay):
+        '''
+        '''
         channel_list = ['T0', 'T1', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
         chann1_num = channel_list.index(chann1)
         chann2_num = channel_list.index(chann2)
         self.instance.write('DLAY {:d},{:d},{:s}'.format(chann1_num, chann2_num, delay))
+
+    def getDelay(self, chann):
+        '''
+        Set channel delay to other channels can only use T0, A-H
+        '''
+        channel_list = ['T0', 'T1', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        chann_num = channel_list.index(chann)
+        ref_chann_num, delay = self.instance.query('DLAY?{:d}'.format(chann_num)).split(',')
+        # ref_chann = channel_list[ref_chann_num]
+        return [int(ref_chann_num), float(delay)]
 
 class StartWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, instrument=None):
@@ -63,15 +79,24 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_G.setValidator(self.DoubleValidator)
         self.lineEdit_H.setValidator(self.DoubleValidator)
 
-        self.lineEdit_Trig.setText('1e2')
-        self.lineEdit_A.setText('0e0')
-        self.lineEdit_B.setText('0e0')
-        self.lineEdit_C.setText('0e0')
-        self.lineEdit_D.setText('0e0')
-        self.lineEdit_E.setText('0e0')
-        self.lineEdit_F.setText('0e0')
-        self.lineEdit_G.setText('0e0')
-        self.lineEdit_H.setText('0e0')
+        self.lineEdit_Trig.setText('%e'%self.instrument.getTriggerRate())
+        self.lineEdit_A.setText('%e'%self.instrument.getDelay('A')[1])
+        self.lineEdit_B.setText('%e'%self.instrument.getDelay('B')[1])
+        self.lineEdit_C.setText('%e'%self.instrument.getDelay('C')[1])
+        self.lineEdit_D.setText('%e'%self.instrument.getDelay('D')[1])
+        self.lineEdit_E.setText('%e'%self.instrument.getDelay('E')[1])
+        self.lineEdit_F.setText('%e'%self.instrument.getDelay('F')[1])
+        self.lineEdit_G.setText('%e'%self.instrument.getDelay('G')[1])
+        self.lineEdit_H.setText('%e'%self.instrument.getDelay('H')[1])
+
+        self.comboBox_A.setCurrentIndex(0 if self.instrument.getDelay('A')[0]==0 else self.instrument.getDelay('A')[0]-1)
+        self.comboBox_B.setCurrentIndex(0 if self.instrument.getDelay('B')[0]==0 else self.instrument.getDelay('B')[0]-1)
+        self.comboBox_C.setCurrentIndex(0 if self.instrument.getDelay('C')[0]==0 else self.instrument.getDelay('C')[0]-1)
+        self.comboBox_D.setCurrentIndex(0 if self.instrument.getDelay('D')[0]==0 else self.instrument.getDelay('D')[0]-1)
+        self.comboBox_E.setCurrentIndex(0 if self.instrument.getDelay('E')[0]==0 else self.instrument.getDelay('E')[0]-1)
+        self.comboBox_F.setCurrentIndex(0 if self.instrument.getDelay('F')[0]==0 else self.instrument.getDelay('F')[0]-1)
+        self.comboBox_G.setCurrentIndex(0 if self.instrument.getDelay('G')[0]==0 else self.instrument.getDelay('G')[0]-1)
+        self.comboBox_H.setCurrentIndex(0 if self.instrument.getDelay('H')[0]==0 else self.instrument.getDelay('H')[0]-1)
 
         self.seq_curve = self.sequenceView()
 
@@ -79,22 +104,39 @@ class StartWindow(QMainWindow, Ui_MainWindow):
 
         self.lineEdit_Trig.editingFinished.connect(lambda:self.instrument.setTriggerRate(self.lineEdit_Trig.text()))
         self.lineEdit_Trig.editingFinished.connect(self.updatePlot)
-        self.lineEdit_A.editingFinished.connect(lambda:self.instrument.setDelay('A', 'T0', self.lineEdit_A.text()))
+        self.lineEdit_A.editingFinished.connect(lambda:self.instrument.setDelay('A', '%s'%self.comboBox_A.currentText(), self.lineEdit_A.text()))
         self.lineEdit_A.editingFinished.connect(self.updatePlot)
-        self.lineEdit_B.editingFinished.connect(lambda:self.instrument.setDelay('B', 'T0', self.lineEdit_B.text()))
+        self.lineEdit_B.editingFinished.connect(lambda:self.instrument.setDelay('B', '%s'%self.comboBox_B.currentText(), self.lineEdit_B.text()))
         self.lineEdit_B.editingFinished.connect(self.updatePlot)
-        self.lineEdit_C.editingFinished.connect(lambda:self.instrument.setDelay('C', 'T0', self.lineEdit_C.text()))
+        self.lineEdit_C.editingFinished.connect(lambda:self.instrument.setDelay('C', '%s'%self.comboBox_C.currentText(), self.lineEdit_C.text()))
         self.lineEdit_C.editingFinished.connect(self.updatePlot)
-        self.lineEdit_D.editingFinished.connect(lambda:self.instrument.setDelay('D', 'T0', self.lineEdit_D.text()))
+        self.lineEdit_D.editingFinished.connect(lambda:self.instrument.setDelay('D', '%s'%self.comboBox_D.currentText(), self.lineEdit_D.text()))
         self.lineEdit_D.editingFinished.connect(self.updatePlot)
-        self.lineEdit_E.editingFinished.connect(lambda:self.instrument.setDelay('E', 'T0', self.lineEdit_E.text()))
+        self.lineEdit_E.editingFinished.connect(lambda:self.instrument.setDelay('E', '%s'%self.comboBox_E.currentText(), self.lineEdit_E.text()))
         self.lineEdit_E.editingFinished.connect(self.updatePlot)
-        self.lineEdit_F.editingFinished.connect(lambda:self.instrument.setDelay('F', 'T0', self.lineEdit_F.text()))
+        self.lineEdit_F.editingFinished.connect(lambda:self.instrument.setDelay('F', '%s'%self.comboBox_F.currentText(), self.lineEdit_F.text()))
         self.lineEdit_F.editingFinished.connect(self.updatePlot)
-        self.lineEdit_G.editingFinished.connect(lambda:self.instrument.setDelay('G', 'T0', self.lineEdit_G.text()))
+        self.lineEdit_G.editingFinished.connect(lambda:self.instrument.setDelay('G', '%s'%self.comboBox_G.currentText(), self.lineEdit_G.text()))
         self.lineEdit_G.editingFinished.connect(self.updatePlot)
-        self.lineEdit_H.editingFinished.connect(lambda:self.instrument.setDelay('H', 'T0', self.lineEdit_H.text()))
-        self.lineEdit_H.editingFinished.connect(self.updatePlot)     
+        self.lineEdit_H.editingFinished.connect(lambda:self.instrument.setDelay('H', '%s'%self.comboBox_H.currentText(), self.lineEdit_H.text()))
+        self.lineEdit_H.editingFinished.connect(self.updatePlot)   
+
+        self.comboBox_A.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('A', '%s'%self.comboBox_A.currentText(), self.lineEdit_A.text()))
+        self.comboBox_A.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_B.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('B', '%s'%self.comboBox_B.currentText(), self.lineEdit_B.text()))
+        self.comboBox_B.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_C.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('C', '%s'%self.comboBox_C.currentText(), self.lineEdit_C.text()))
+        self.comboBox_C.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_D.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('D', '%s'%self.comboBox_D.currentText(), self.lineEdit_D.text()))
+        self.comboBox_D.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_E.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('E', '%s'%self.comboBox_E.currentText(), self.lineEdit_E.text()))
+        self.comboBox_E.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_F.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('F', '%s'%self.comboBox_F.currentText(), self.lineEdit_F.text()))
+        self.comboBox_F.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_G.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('G', '%s'%self.comboBox_G.currentText(), self.lineEdit_G.text()))
+        self.comboBox_G.currentIndexChanged[str].connect(self.updatePlot)
+        self.comboBox_H.currentIndexChanged[str].connect(lambda:self.instrument.setDelay('H', '%s'%self.comboBox_H.currentText(), self.lineEdit_H.text()))
+        self.comboBox_H.currentIndexChanged[str].connect(self.updatePlot)
 
     def sequenceView(self):
         trig_rate = self.lineEdit_Trig.text()
@@ -106,6 +148,23 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         delay_F = self.lineEdit_F.text()
         delay_G = self.lineEdit_G.text()
         delay_H = self.lineEdit_H.text()
+        delay = {'T0':0, 'A':delay_A, 'B':delay_B, 'C':delay_C, 'D':delay_D, 'E':delay_E, 'F':delay_F, 'G':delay_G, 'H':delay_H}
+        reference_A = delay['%s'%self.comboBox_A.currentText()]
+        reference_B = delay['%s'%self.comboBox_B.currentText()]
+        reference_C = delay['%s'%self.comboBox_C.currentText()]
+        reference_D = delay['%s'%self.comboBox_D.currentText()]
+        reference_E = delay['%s'%self.comboBox_E.currentText()]
+        reference_F = delay['%s'%self.comboBox_F.currentText()]
+        reference_G = delay['%s'%self.comboBox_G.currentText()]
+        reference_H = delay['%s'%self.comboBox_H.currentText()]
+        delay_A = float(reference_A)+float(delay_A)
+        delay_B = float(reference_B)+float(delay_B)
+        delay_C = float(reference_C)+float(delay_C)
+        delay_D = float(reference_D)+float(delay_D)
+        delay_E = float(reference_E)+float(delay_E)
+        delay_F = float(reference_F)+float(delay_F)
+        delay_G = float(reference_G)+float(delay_G)
+        delay_H = float(reference_H)+float(delay_H)
 
         self.curve = pg.PlotWidget()
         period = 1/float(trig_rate)
@@ -155,6 +214,23 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         delay_F = self.lineEdit_F.text()
         delay_G = self.lineEdit_G.text()
         delay_H = self.lineEdit_H.text()
+        delay = {'T0':0, 'A':delay_A, 'B':delay_B, 'C':delay_C, 'D':delay_D, 'E':delay_E, 'F':delay_F, 'G':delay_G, 'H':delay_H}
+        reference_A = delay['%s'%self.comboBox_A.currentText()]
+        reference_B = delay['%s'%self.comboBox_B.currentText()]
+        reference_C = delay['%s'%self.comboBox_C.currentText()]
+        reference_D = delay['%s'%self.comboBox_D.currentText()]
+        reference_E = delay['%s'%self.comboBox_E.currentText()]
+        reference_F = delay['%s'%self.comboBox_F.currentText()]
+        reference_G = delay['%s'%self.comboBox_G.currentText()]
+        reference_H = delay['%s'%self.comboBox_H.currentText()]
+        delay_A = float(reference_A)+float(delay_A)
+        delay_B = float(reference_B)+float(delay_B)
+        delay_C = float(reference_C)+float(delay_C)
+        delay_D = float(reference_D)+float(delay_D)
+        delay_E = float(reference_E)+float(delay_E)
+        delay_F = float(reference_F)+float(delay_F)
+        delay_G = float(reference_G)+float(delay_G)
+        delay_H = float(reference_H)+float(delay_H)
 
         period = 1/float(trig_rate)
         x = np.linspace(0, period, 1000000)
@@ -190,6 +266,7 @@ if __name__ == '__main__':
     dg645 = Sequence('TCPIP::192.168.1.139::INSTR')
     dg645.open()
     print(dg645.query('*IDN?'))
+    # print(dg645.query('TRAT?'))
     dg645.write('TSRC 0')
     app = QApplication([])
     start_window = StartWindow(dg645)
